@@ -17,6 +17,7 @@
 #define IDC_DETAILS_TABS                1008
 #define IDC_ATTRIBUTE_LIST              1009
 #define IDC_VISUAL_STATE_TREE           1010
+#define IDC_ATTRIBUTE_FILTER            1029
 #define IDC_PROPERTY_NAME               1011
 #define IDC_PROPERTY_VALUE              1012
 #define IDC_PROPERTY_VALUE_XAML         1013
