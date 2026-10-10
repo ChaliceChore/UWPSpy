@@ -2696,7 +2696,6 @@ bool CMainDlg::SetSelectedElementInformation() {
         SetDlgItemText(IDC_RECT_EDIT, L"");
 
         m_attributesList.DeleteAllItems();
-        m_attributesList.SetSortColumn(-1);
 
         auto visualStatesTree =
             CTreeViewCtrlEx(GetDlgItem(IDC_VISUAL_STATE_TREE));
@@ -2770,7 +2769,6 @@ bool CMainDlg::SetSelectedElementInformation() {
         PopulateVisualStatesTree(handle);
     } else {
         m_attributesList.DeleteAllItems();
-        m_attributesList.SetSortColumn(-1);
 
         auto visualStatesTree =
             CTreeViewCtrlEx(GetDlgItem(IDC_VISUAL_STATE_TREE));
@@ -2814,6 +2812,10 @@ void CMainDlg::ResetAttributesListColumns() {
     attributesList.SetRedraw(FALSE);
 
     attributesList.DeleteAllItems();
+
+    // Deleting the columns resets the sort column, restore it afterwards if it
+    // still exists.
+    int sortColumn = m_attributesList.GetSortColumn();
 
     int firstColumnWidth = attributesList.GetColumnWidth(0);
 
@@ -2860,6 +2862,10 @@ void CMainDlg::ResetAttributesListColumns() {
         FillLastListViewColumn(attributesList, clientRect.Width());
     }
 
+    if (sortColumn != -1 && sortColumn < c) {
+        m_attributesList.SetSortColumn(sortColumn);
+    }
+
     attributesList.SetRedraw(TRUE);
 }
 
@@ -2869,7 +2875,6 @@ void CMainDlg::PopulateAttributesList(InstanceHandle handle) {
     attributesList.SetRedraw(FALSE);
 
     attributesList.DeleteAllItems();
-    m_attributesList.SetSortColumn(-1);
 
     auto propertiesComboBox = CComboBox(GetDlgItem(IDC_PROPERTY_NAME));
     propertiesComboBox.ResetContent();
@@ -3020,6 +3025,13 @@ void CMainDlg::PopulateAttributesList(InstanceHandle handle) {
     // freed and this seems to be working.
     CoTaskMemFree(pPropertySources);
     CoTaskMemFree(pPropertyValues);
+
+    // Keep the sort order chosen by the user when switching elements.
+    int sortColumn = m_attributesList.GetSortColumn();
+    if (sortColumn != -1) {
+        m_attributesList.DoSortItems(sortColumn,
+                                     m_attributesList.IsSortDescending());
+    }
 
     attributesList.SetRedraw(TRUE);
 }
