@@ -1205,6 +1205,10 @@ void CMainDlg::ElementRemoved(InstanceHandle handle) {
 
         auto treeView = CTreeViewCtrlEx(GetDlgItem(IDC_ELEMENT_TREE));
 
+        auto selectedItem = treeView.GetSelectedItem();
+        InstanceHandle selectedHandle =
+            selectedItem ? HandleFromLParam(selectedItem.GetData()) : 0;
+
         bool deleted = treeView.DeleteItem(it->second.treeItem);
         ATLASSERT(deleted);
 
@@ -1231,6 +1235,17 @@ void CMainDlg::ElementRemoved(InstanceHandle handle) {
         };
 
         clearTreeItemRecursive(handle, &it->second);
+
+        // If the selected item was removed, remember it to select it again if
+        // it's re-added. That happens, for example, when an ancestor is
+        // re-parented.
+        if (selectedHandle) {
+            auto selectedIt = m_elementItems.find(selectedHandle);
+            if (selectedIt != m_elementItems.end() &&
+                !selectedIt->second.treeItem) {
+                m_reselectHandle = selectedHandle;
+            }
+        }
     }
 
     auto itChildrenOfParent = m_parentToChildren.find(it->second.parentHandle);
@@ -2143,6 +2158,7 @@ LRESULT CMainDlg::OnElementTreeSelChanged(LPNMHDR pnmh) {
     switch (pnmtv->action) {
         case TVC_BYKEYBOARD:
         case TVC_BYMOUSE:
+            m_reselectHandle = 0;
             SetSelectedElementInformation();
             break;
 
@@ -2488,6 +2504,7 @@ void CMainDlg::OnCollapseAll(UINT uNotifyCode, int nID, CWindow wndCtl) {
         }
 
         if (!m_listCollapsed) {
+            m_reselectHandle = 0;
             treeView.SelectItem(root);
             TreeViewExpandRecursively(treeView, root, TVE_COLLAPSE);
             treeView.EnsureVisible(root);
@@ -3180,6 +3197,11 @@ void CMainDlg::AddItemToTree(HTREEITEM parentTreeItem,
 
     elementItem->treeItem = insertedItem;
 
+    if (m_reselectHandle && handle == m_reselectHandle) {
+        m_reselectHandle = 0;
+        treeView.SelectItem(insertedItem);
+    }
+
     if (auto it = m_parentToChildren.find(handle);
         it != m_parentToChildren.end()) {
         for (const auto& childHandle : it->second) {
@@ -3213,6 +3235,8 @@ bool CMainDlg::SelectElementFromCursor() {
     if (!treeItem) {
         return false;
     }
+
+    m_reselectHandle = 0;
 
     auto treeView = CTreeViewCtrlEx(GetDlgItem(IDC_ELEMENT_TREE));
     treeView.SelectItem(treeItem);
