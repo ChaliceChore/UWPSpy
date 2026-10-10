@@ -12,6 +12,7 @@ class CMainDlg : public CDialogImpl<CMainDlg>, public CDialogResize<CMainDlg> {
 
     enum {
         TIMER_ID_REDRAW_TREE = 1,
+        TIMER_ID_SELECT_ELEMENT_FROM_CURSOR_DELAYED,
         TIMER_ID_SET_SELECTED_ELEMENT_INFORMATION,
         TIMER_ID_ATTRIBUTE_FILTER,
         TIMER_ID_REFRESH_SELECTED_ELEMENT_INFORMATION,
@@ -206,6 +207,8 @@ class CMainDlg : public CDialogImpl<CMainDlg>, public CDialogResize<CMainDlg> {
     bool CreateFlashArea(InstanceHandle handle);
     void DestroyFlashArea();
     bool SelectElementFromCursor();
+    void SelectElementFromCursorDelayed();
+    void UpdateSelectElementFromCursorCountdown();
     void OnElementTreeContextMenu(CTreeViewCtrlEx treeView, CPoint point);
     void OnAttributesListContextMenu(CListViewCtrl listView, CPoint point);
     void OnVisualStateContextMenu(CTreeViewCtrlEx treeView, CPoint point);
@@ -275,6 +278,9 @@ class CMainDlg : public CDialogImpl<CMainDlg>, public CDialogResize<CMainDlg> {
 
     InstanceHandle m_delayedCopySubtreeHandle = 0;
     bool m_delayedCopySubtreeWithProperties = false;
+
+    std::wstring m_windowTitle;
+    int m_selectElementFromCursorCountdown = 0;
 
     CWindow m_flashAreaWindow;
 
